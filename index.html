@@ -377,7 +377,7 @@
       选择本仓库、权限勾选 <b>Contents → 读写</b>，然后把令牌粘到下面。
     </p>
     <input id="cloud-owner" type="text" placeholder="GitHub 用户名，如 xieyishengjimmy" autocomplete="off">
-    <input id="cloud-repo" type="text" placeholder="仓库名，如 xieyishengjimmy.github.io" autocomplete="off">
+    <input id="cloud-repo" type="text" placeholder="仓库名，如 mapMarking" autocomplete="off">
     <input id="cloud-path" type="text" placeholder="存档文件名，如 saves.json" autocomplete="off">
     <input id="cloud-token" type="password" placeholder="访问令牌 token（github_pat_ 开头）" autocomplete="off">
     <div class="error" id="cloud-error"></div>
@@ -1490,7 +1490,7 @@ async function cloudPush() {
 function openCloudModal() {
   const c = getCloudCfg() || {};
   document.getElementById('cloud-owner').value = c.owner || 'xieyishengjimmy';
-  document.getElementById('cloud-repo').value = c.repo || 'xieyishengjimmy.github.io';
+  document.getElementById('cloud-repo').value = c.repo || 'mapMarking';
   document.getElementById('cloud-path').value = c.path || 'saves.json';
   document.getElementById('cloud-token').value = c.token || '';
   document.getElementById('cloud-error').style.display = 'none';
