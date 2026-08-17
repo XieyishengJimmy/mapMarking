@@ -1420,12 +1420,17 @@ function cloudHeaders() {
   return { 'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json' };
 }
 
+async function githubErrorText(res) {
+  try { const j = await res.json(); if (j && j.message) return j.message; } catch(e) {}
+  return '';
+}
+
 async function cloudFetchFile() {
   const res = await fetch(cloudApiUrl(), { headers: cloudHeaders() });
   if (res.status === 404) return null; // 云端还没有存档文件
   if (res.status === 401) throw new Error('令牌无效或无权限(401)');
   if (res.status === 403) throw new Error('无权限或被限流(403)');
-  if (!res.ok) throw new Error('读取云端失败 HTTP ' + res.status);
+  if (!res.ok) { const m = await githubErrorText(res); throw new Error('读取云端失败 HTTP ' + res.status + (m ? '：' + m : '')); }
   const j = await res.json();
   return { content: b64decode(j.content), sha: j.sha };
 }
@@ -1441,7 +1446,7 @@ async function cloudWriteFile(content, sha) {
   });
   if (res.status === 401) throw new Error('令牌无效或无权限(401)');
   if (res.status === 422) throw new Error('云端被其它设备更新，请再点一次');
-  if (!res.ok) throw new Error('写入云端失败 HTTP ' + res.status);
+  if (!res.ok) { const m = await githubErrorText(res); throw new Error('写入云端失败 HTTP ' + res.status + (m ? '：' + m : '')); }
 }
 
 // 按 name 合并，同名取 ts（时间戳）更大的那条，避免互相覆盖丢数据
