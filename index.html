@@ -64,6 +64,47 @@
   #key-modal .btn-ghost:hover { color:var(--text); }
   #key-modal .error { color:var(--danger); font-size:13px; margin-top:10px; display:none; }
 
+  /* ---- 云同步弹窗 ---- */
+  #cloud-modal-overlay {
+    position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center;
+  }
+  #cloud-modal {
+    background:var(--panel-bg); border-radius:14px; padding:26px 26px 22px;
+    width:460px; max-width:92vw; box-shadow:0 8px 40px rgba(0,0,0,0.25);
+    max-height:90vh; overflow-y:auto;
+  }
+  #cloud-modal h2 { font-size:20px; margin-bottom:6px; color:var(--text); }
+  #cloud-modal .cloud-sub { font-size:13px; color:var(--text-secondary); margin-bottom:14px; line-height:1.7; }
+  #cloud-modal .cloud-sub a { color:var(--primary); text-decoration:none; }
+  #cloud-modal input {
+    width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px;
+    font-size:14px; outline:none; background:var(--bg); color:var(--text); margin-top:9px;
+    transition:border-color .2s;
+  }
+  #cloud-modal input:focus { border-color:var(--primary); }
+  #cloud-modal .btn-row { margin-top:16px; display:flex; gap:8px; justify-content:space-between; }
+  #cloud-modal .btn {
+    padding:10px 14px; border:none; border-radius:8px; font-size:13px; cursor:pointer; font-weight:500;
+    flex:1; white-space:nowrap;
+  }
+  #cloud-modal .btn-primary { background:var(--primary); color:#fff; }
+  #cloud-modal .btn-primary:hover { background:var(--primary-hover); }
+  #cloud-modal .btn-ghost { background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+  #cloud-modal .btn-ghost:hover { color:var(--text); border-color:var(--primary); }
+  #cloud-modal .error { color:var(--danger); font-size:13px; margin-top:10px; display:none; }
+  #cloud-modal .cloud-note {
+    font-size:12px; color:var(--text-secondary); margin-top:14px; line-height:1.7;
+    border-top:1px dashed var(--border); padding-top:10px;
+  }
+  #btn-cloud {
+    width:28px; height:28px; border:none; border-radius:6px; cursor:pointer;
+    background:transparent; color:var(--text-secondary); font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #btn-cloud:hover { background:var(--border); color:var(--text); }
+  #btn-cloud.on { color:var(--primary); }
+
   /* ---- 存档弹窗 ---- */
   #save-modal-overlay {
     position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,0.55);
@@ -247,6 +288,8 @@
   }
   .marker-info { flex:1; min-width:0; }
   .marker-info .addr { font-size:13px; color:var(--text); white-space:normal; word-break:break-word; line-height:1.45; }
+  .marker-info .m-name { font-size:13px; color:var(--text); font-weight:500; white-space:normal; word-break:break-word; line-height:1.4; }
+  .marker-info .m-sub { font-size:11px; color:var(--text-secondary); white-space:normal; word-break:break-word; line-height:1.4; margin-top:2px; }
   .marker-del {
     width:26px; height:26px; border-radius:50%; border:none;
     background:transparent; color:var(--text-secondary); cursor:pointer;
@@ -324,6 +367,31 @@
   </div>
 </div>
 
+<!-- 云同步弹窗 -->
+<div id="cloud-modal-overlay" style="display:none;">
+  <div id="cloud-modal">
+    <h2>☁️ 云同步设置</h2>
+    <p class="cloud-sub">
+      把「命名存档」同步到你的 GitHub 仓库，多台设备共用同一份数据。
+      先去 <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">这里创建令牌</a>，
+      选择本仓库、权限勾选 <b>Contents → 读写</b>，然后把令牌粘到下面。
+    </p>
+    <input id="cloud-owner" type="text" placeholder="GitHub 用户名，如 xieyishengjimmy" autocomplete="off">
+    <input id="cloud-repo" type="text" placeholder="仓库名，如 xieyishengjimmy.github.io" autocomplete="off">
+    <input id="cloud-path" type="text" placeholder="存档文件名，如 saves.json" autocomplete="off">
+    <input id="cloud-token" type="password" placeholder="访问令牌 token（github_pat_ 开头）" autocomplete="off">
+    <div class="error" id="cloud-error"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="cloud-pull">☁️ 从云端读取</button>
+      <button class="btn btn-ghost" id="cloud-push">☁️ 上传到云端</button>
+      <button class="btn btn-primary" id="cloud-save">保存配置</button>
+    </div>
+    <div class="cloud-note">
+      ⚠️ 存档会作为<b>公开文件</b>存到仓库（地址可见）。令牌只保存在你本机浏览器里，不会写进网页代码。
+    </div>
+  </div>
+</div>
+
 <!-- 存档弹窗 -->
 <div id="save-modal-overlay" style="display:none;">
   <div id="save-modal">
@@ -345,6 +413,10 @@
         <button class="btn btn-ghost" id="export-btn" title="把所有存档导出为 JSON 文件">📤 导出文件</button>
         <button class="btn btn-ghost" id="import-btn" title="从 JSON 文件导入存档">📥 导入文件</button>
         <input type="file" id="import-file" accept=".json,application/json" style="display:none;">
+      </div>
+      <div class="sm-io-row">
+        <button class="btn btn-ghost" id="cloud-pull-btn" title="从云端读取存档">☁️ 从云端读取</button>
+        <button class="btn btn-ghost" id="cloud-push-btn" title="把本机存档上传到云端">☁️ 上传到云端</button>
       </div>
     </div>
   </div>
@@ -379,6 +451,7 @@
     </div>
     <div class="header-right">
       <span class="badge" id="marker-count">0 个点</span>
+      <button id="btn-cloud" title="云同步（跨设备保存/读取）">☁️</button>
       <button id="btn-settings" title="更换 API Key">⚙️</button>
     </div>
   </div>
@@ -440,6 +513,7 @@ let mapLoaded = false;
 
 // 搜索相关状态
 let tempPosition = null;       // 搜索定位到的临时坐标 [lng, lat]
+let tempName = null;           // 搜索定位到的地点名
 let tempMarker = null;         // 临时标记（红色大头针）
 let searchAutoComplete = null; // 输入联想
 let searchPlaceSearch = null;  // 关键词搜索
@@ -650,7 +724,7 @@ function initSearch() {
   // 「标记此处」按钮：把搜索定位到的位置变成正式标记点
   $btnAddSearch.addEventListener('click', () => {
     if (!tempPosition) return;
-    addMarker(tempPosition[0], tempPosition[1]);
+    addMarker(tempPosition[0], tempPosition[1], { name: tempName || '' });
     clearTemp();
     showToast('✅ 已添加标记点');
   });
@@ -668,6 +742,7 @@ function locateTo(lng, lat, name) {
   map.setZoomAndCenter(16, [lng, lat]);
   clearTemp();
   tempPosition = [lng, lat];
+  tempName = name || null;
   tempMarker = new AMap.Marker({
     position: [lng, lat],
     animation: 'AMAP_ANIMATION_DROP',
@@ -679,6 +754,7 @@ function locateTo(lng, lat, name) {
 function clearTemp() {
   if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
   tempPosition = null;
+  tempName = null;
   $btnAddSearch.classList.remove('show');
 }
 
@@ -769,7 +845,7 @@ function clearPoiTemp() {
 
 // ==================== 标记管理 ====================
 function addMarker(lng, lat, options = {}) {
-  const { id: forceId, address: forceAddr, skipSave } = options;
+  const { id: forceId, name: forceName, address: forceAddr, skipSave } = options;
   const id = forceId != null ? Number(forceId) : (++markerIdCounter);
 
   // 去重：避免在同一位置重复添加
@@ -809,7 +885,7 @@ function addMarker(lng, lat, options = {}) {
 
   map.add(marker);
 
-  const data = { id: String(id), lng, lat, address: forceAddr || '', marker, el };
+  const data = { id: String(id), lng, lat, name: forceName || '', address: forceAddr || '', marker, el };
   markers.push(data);
   if (id > markerIdCounter) markerIdCounter = id;
 
@@ -824,10 +900,17 @@ function addMarker(lng, lat, options = {}) {
 function updateAddress(m) {
   if (!m || m.address) return;
   if (!window.AMap || !AMap.Geocoder) return;
-  const geocoder = new AMap.Geocoder({});
+  const geocoder = new AMap.Geocoder({ extensions: 'all' });
   geocoder.getAddress([m.lng, m.lat], (status, result) => {
     if (status === 'complete' && result.regeocode) {
       m.address = result.regeocode.formattedAddress || '';
+      // 尝试从附近 POI 取地点名（店铺名等），距离太远的不采用
+      if (!m.name) {
+        const pois = result.regeocode.pois || [];
+        if (pois.length && pois[0].distance != null && pois[0].distance < 100) {
+          m.name = pois[0].name || '';
+        }
+      }
       renderMarkerList();
       saveMarkers();
     }
@@ -945,6 +1028,8 @@ function renderMarkerList() {
   $emptyState.style.display = 'none';
 
   markers.forEach((m, i) => {
+    const primary = m.name || m.address || '获取地址中…';
+    const secondary = (m.name && m.address) ? m.address : '';
     const div = document.createElement('div');
     div.className = 'marker-item' + (m.id === activeMarkerId ? ' active' : '');
     div.draggable = true;
@@ -952,7 +1037,8 @@ function renderMarkerList() {
       <div class="drag-handle" title="按住拖动排序">⋮⋮</div>
       <div class="marker-num" style="background:${markerColor(i, markers.length)}">${i + 1}</div>
       <div class="marker-info">
-        <div class="addr">${m.address || '获取地址中…'}</div>
+        <div class="${m.name ? 'm-name' : 'addr'}">${primary}</div>
+        ${secondary ? `<div class="m-sub">${secondary}</div>` : ''}
       </div>
       <button class="marker-move up" data-id="${m.id}" title="上移一位" ${i === 0 ? 'disabled' : ''}>↑</button>
       <button class="marker-move down" data-id="${m.id}" title="下移一位" ${i === markers.length - 1 ? 'disabled' : ''}>↓</button>
@@ -1097,7 +1183,7 @@ function updateDistanceInfo() {
 
 // ==================== 持久化 ====================
 function saveMarkers() {
-  const data = markers.map(m => ({ id: m.id, lng: m.lng, lat: m.lat, address: m.address }));
+  const data = markers.map(m => ({ id: m.id, lng: m.lng, lat: m.lat, name: m.name || '', address: m.address }));
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
 }
 
@@ -1108,7 +1194,7 @@ function restoreMarkers() {
     const data = JSON.parse(raw);
     if (!Array.isArray(data)) return;
     data.forEach(d => {
-      addMarker(d.lng, d.lat, { id: d.id, address: d.address, skipSave: true });
+      addMarker(d.lng, d.lat, { id: d.id, name: d.name, address: d.address, skipSave: true });
     });
   } catch(e) {}
 }
@@ -1151,12 +1237,16 @@ function doSave(name) {
   const record = {
     name,
     savedAt: new Date().toLocaleString('zh-CN'),
-    markers: markers.map(m => ({ lng: m.lng, lat: m.lat, address: m.address || '' })),
+    ts: Date.now(),
+    markers: markers.map(m => ({ lng: m.lng, lat: m.lat, name: m.name || '', address: m.address || '' })),
     routeMode: routePolyline ? 'straight' : (drivingInstances.length ? 'driving' : null),
   };
   const idx = saves.findIndex(s => s.name === name);
   if (idx >= 0) saves[idx] = record; else saves.push(record);
   persistSaves(saves);
+  if (cloudConfigured()) {
+    cloudPush().then(() => showToast('☁️ 已同步到云端')).catch(err => showToast('⚠️ 云同步失败：' + err.message));
+  }
   currentSaveName = name;
   updateCurrentSaveName();
 }
@@ -1199,7 +1289,7 @@ function loadSave(name) {
   markerIdCounter = 0;
   clearRoutes();
   (record.markers || []).forEach(d => {
-    addMarker(d.lng, d.lat, { address: d.address, skipSave: true });
+    addMarker(d.lng, d.lat, { name: d.name, address: d.address, skipSave: true });
   });
   refreshAll();
   renderMarkerList();
@@ -1290,6 +1380,160 @@ function importSaves(file) {
   reader.readAsText(file);
 }
 
+// ==================== 云同步（GitHub） ====================
+const CLOUD_CFG_KEY = 'amap_cloud_cfg_v1';
+
+function getCloudCfg() {
+  try { return JSON.parse(localStorage.getItem(CLOUD_CFG_KEY)) || null; } catch(e) { return null; }
+}
+function saveCloudCfg(cfg) {
+  try { localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg)); } catch(e) {}
+}
+function cloudConfigured() {
+  const c = getCloudCfg();
+  return !!(c && c.token && c.owner && c.repo && c.path);
+}
+function refreshCloudButton() {
+  const btn = document.getElementById('btn-cloud');
+  if (btn) btn.classList.toggle('on', cloudConfigured());
+}
+
+function b64encode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64decode(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function cloudApiUrl() {
+  const c = getCloudCfg();
+  return 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) + '/contents/' + encodeURIComponent(c.path);
+}
+function cloudHeaders() {
+  const c = getCloudCfg();
+  return { 'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json' };
+}
+
+async function cloudFetchFile() {
+  const res = await fetch(cloudApiUrl(), { headers: cloudHeaders() });
+  if (res.status === 404) return null; // 云端还没有存档文件
+  if (res.status === 401) throw new Error('令牌无效或无权限(401)');
+  if (res.status === 403) throw new Error('无权限或被限流(403)');
+  if (!res.ok) throw new Error('读取云端失败 HTTP ' + res.status);
+  const j = await res.json();
+  return { content: b64decode(j.content), sha: j.sha };
+}
+
+async function cloudWriteFile(content, sha) {
+  const c = getCloudCfg();
+  const body = { message: '更新路线存档', content: b64encode(content) };
+  if (sha) body.sha = sha;
+  const res = await fetch(cloudApiUrl(), {
+    method: 'PUT',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cloudHeaders()),
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401) throw new Error('令牌无效或无权限(401)');
+  if (res.status === 422) throw new Error('云端被其它设备更新，请再点一次');
+  if (!res.ok) throw new Error('写入云端失败 HTTP ' + res.status);
+}
+
+// 按 name 合并，同名取 ts（时间戳）更大的那条，避免互相覆盖丢数据
+function mergeSaves(a, b) {
+  const map = new Map();
+  for (const r of (b || []).concat(a || [])) {
+    if (!r || !r.name) continue;
+    const exist = map.get(r.name);
+    if (!exist) { map.set(r.name, r); continue; }
+    if ((r.ts || 0) >= (exist.ts || 0)) map.set(r.name, r);
+  }
+  return Array.from(map.values());
+}
+
+async function cloudPull() {
+  if (!cloudConfigured()) { showToast('☁️ 请先点右上角 ☁️ 配置云同步'); return; }
+  const got = await cloudFetchFile();
+  if (!got) { showToast('☁️ 云端还没有存档'); return; }
+  let j;
+  try { j = JSON.parse(got.content); } catch(e) { throw new Error('云端文件不是有效 JSON'); }
+  const remoteSaves = (j && Array.isArray(j.saves)) ? j.saves : [];
+  const merged = mergeSaves(getSaves(), remoteSaves);
+  persistSaves(merged);
+  renderSaveList();
+  showToast('☁️ 已从云端读取 ' + remoteSaves.length + ' 个存档');
+}
+
+async function cloudPush() {
+  if (!cloudConfigured()) { showToast('☁️ 请先点右上角 ☁️ 配置云同步'); return; }
+  const local = getSaves();
+  let sha = null, remoteSaves = [];
+  try {
+    const got = await cloudFetchFile();
+    if (got) {
+      sha = got.sha;
+      try { const j = JSON.parse(got.content); if (j && Array.isArray(j.saves)) remoteSaves = j.saves; } catch(e) {}
+    }
+  } catch(e) {}
+  const merged = mergeSaves(remoteSaves, local);
+  const payload = { version: 1, updatedAt: Date.now(), saves: merged };
+  await cloudWriteFile(JSON.stringify(payload, null, 2), sha);
+  persistSaves(merged);
+  renderSaveList();
+}
+
+function openCloudModal() {
+  const c = getCloudCfg() || {};
+  document.getElementById('cloud-owner').value = c.owner || 'xieyishengjimmy';
+  document.getElementById('cloud-repo').value = c.repo || 'xieyishengjimmy.github.io';
+  document.getElementById('cloud-path').value = c.path || 'saves.json';
+  document.getElementById('cloud-token').value = c.token || '';
+  document.getElementById('cloud-error').style.display = 'none';
+  document.getElementById('cloud-modal-overlay').style.display = 'flex';
+}
+function closeCloudModal() {
+  document.getElementById('cloud-modal-overlay').style.display = 'none';
+}
+
+document.getElementById('btn-cloud').addEventListener('click', openCloudModal);
+document.getElementById('cloud-save').addEventListener('click', () => {
+  const owner = document.getElementById('cloud-owner').value.trim();
+  const repo = document.getElementById('cloud-repo').value.trim();
+  const path = document.getElementById('cloud-path').value.trim();
+  const token = document.getElementById('cloud-token').value.trim();
+  const err = document.getElementById('cloud-error');
+  if (!owner || !repo || !path || !token) {
+    err.style.display = 'block';
+    err.textContent = '请把「用户名 / 仓库 / 文件名 / 令牌」四项都填完整';
+    return;
+  }
+  saveCloudCfg({ owner: owner, repo: repo, path: path, token: token });
+  err.style.display = 'none';
+  refreshCloudButton();
+  showToast('☁️ 云同步配置已保存');
+});
+document.getElementById('cloud-pull').addEventListener('click', () => {
+  cloudPull().catch(e => showToast('⚠️ ' + e.message));
+});
+document.getElementById('cloud-push').addEventListener('click', () => {
+  cloudPush().then(() => showToast('☁️ 已上传到云端')).catch(e => showToast('⚠️ ' + e.message));
+});
+document.getElementById('cloud-pull-btn').addEventListener('click', () => {
+  cloudPull().catch(e => showToast('⚠️ ' + e.message));
+});
+document.getElementById('cloud-push-btn').addEventListener('click', () => {
+  cloudPush().then(() => showToast('☁️ 已上传到云端')).catch(e => showToast('⚠️ ' + e.message));
+});
+document.getElementById('cloud-modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('cloud-modal-overlay')) closeCloudModal();
+});
+refreshCloudButton();
+
 // ==================== 按钮事件 ====================
 document.getElementById('btn-route').addEventListener('click', () => drawSimpleRoute());
 document.getElementById('btn-driving').addEventListener('click', () => drawDrivingRoute());
@@ -1322,7 +1566,7 @@ document.getElementById('poi-close').addEventListener('click', () => { hidePoiCa
 document.getElementById('poi-add-marker').addEventListener('click', () => {
   if (!currentPoi) return;
   const loc = extractLngLat(currentPoi.location);
-  if (loc) addMarker(loc[0], loc[1], { address: currentPoi.name || currentPoi.address || '' });
+  if (loc) addMarker(loc[0], loc[1], { name: currentPoi.name || '', address: currentPoi.address || '' });
   hidePoiCard();
   clearPoiTemp();
   showToast('✅ 已添加标记点');
